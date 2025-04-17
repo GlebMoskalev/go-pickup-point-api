@@ -15,6 +15,6 @@ type Product struct {
 	ID          uuid.UUID `db:"id"`
 	DateTime    time.Time `db:"date_time"`
 	Type        string    `db:"type"`
-	ReceptionId uuid.UUID `db:"reception_id"`
+	ReceptionID uuid.UUID `db:"reception_id"`
 	OrderNumber int       `db:"order_number"`
 }

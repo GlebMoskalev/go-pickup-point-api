@@ -83,9 +83,9 @@ func newAuthHandler(authService service.Auth) *authHandler {
 // @Accept json
 // @Produce json
 // @Param input body dummyLoginRequest true "Данные для входа"
-// @Success 200 {object} dummyLoginResponse
-// @Failure 400 {object} httpresponse.ErrorResponse
-// @Failure 500 {object} httpresponse.ErrorResponse
+// @Success 200 {object} dummyLoginResponse "Возвращает JWT токен для аутентификации"
+// @Failure 400 {object} httpresponse.ErrorResponse "Некорректное тело запроса"
+// @Failure 500 {object} httpresponse.ErrorResponse  "Внутренняя ошибка сервера"
 // @Router /api/v1/dummyLogin [post]
 func (h *authHandler) dummyLogin(w http.ResponseWriter, r *http.Request) {
 	var req dummyLoginRequest
@@ -114,10 +114,10 @@ func (h *authHandler) dummyLogin(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param input body loginRequest true "Учетные данные"
-// @Success 200 {object} loginResponse
-// @Failure 400 {object} httpresponse.ErrorResponse
-// @Failure 401 {object} httpresponse.ErrorResponse
-// @Failure 500 {object} httpresponse.ErrorResponse
+// @Success 200 {object} loginResponse "Возвращает JWT токен для аутентификации"
+// @Failure 400 {object} httpresponse.ErrorResponse "Некорректное тело запроса"
+// @Failure 401 {object} httpresponse.ErrorResponse "Неверные учетные данные"
+// @Failure 500 {object} httpresponse.ErrorResponse  "Внутренняя ошибка сервера"
 // @Router /api/v1/login [post]
 func (h *authHandler) login(w http.ResponseWriter, r *http.Request) {
 	var req loginRequest
@@ -146,10 +146,10 @@ func (h *authHandler) login(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param input body registerRequest true "Данные для регистрации"
-// @Success 201 {object} registerResponse
-// @Failure 400 {object} httpresponse.ErrorResponse
-// @Failure 409 {object} httpresponse.ErrorResponse
-// @Failure 500 {object} httpresponse.ErrorResponse
+// @Success 201 {object} registerResponse  "Возвращает данные зарегистрированного пользователя"
+// @Failure 400 {object} httpresponse.ErrorResponse "Некорректное тело запроса"
+// @Failure 409 {object} httpresponse.ErrorResponse "Пользователь с таким email уже существует"
+// @Failure 500 {object} httpresponse.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/register [post]
 func (h *authHandler) register(w http.ResponseWriter, r *http.Request) {
 	var req registerRequest

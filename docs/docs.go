@@ -41,19 +41,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Возвращает JWT токен для аутентификации",
                         "schema": {
                             "$ref": "#/definitions/v1.dummyLoginResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Некорректное тело запроса",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
@@ -87,25 +87,333 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Возвращает JWT токен для аутентификации",
                         "schema": {
                             "$ref": "#/definitions/v1.loginResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Некорректное тело запроса",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Неверные учетные данные",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/products": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Добавляет товар в последнюю незакрытую приёмку в указанном ПВЗ. Доступно только для сотрудников ПВЗ. Требуется незакрытая приёмка.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "products"
+                ],
+                "summary": "Добавление товара в приёмку",
+                "parameters": [
+                    {
+                        "description": "Данные для добавления товара",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/v1.createProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный идентификатор ПВЗ, тип товара или отсутствие открытой приёмки",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pvz": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Только для модераторов. Создаёт пункт выдачи заказов (ПВЗ) в одном из поддерживаемых городов: Москва, Санкт-Петербург, Казань.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pvz"
+                ],
+                "summary": "Создание ПВЗ",
+                "parameters": [
+                    {
+                        "description": "Данные для создания ПВЗ",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createPVZRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ПВЗ успешно создан",
+                        "schema": {
+                            "$ref": "#/definitions/v1.createPVZResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный город или некорректное тело запроса",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён: требуется роль модератора",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pvz/{pvzId}/close_last_reception": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Закрывает последнюю открытое приёмку в ПВЗ. Доступно только для сотрудников ПВЗ. Приёмка должна быть открытой.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "receptions"
+                ],
+                "summary": "Закрытие последней приёмки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор ПВЗ",
+                        "name": "pvzId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.closeReceptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный идентификатор ПВЗ или приёмка не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pvz/{pvzId}/delete_last_product": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Удаляет последний добавленный товар в последней незакрытой приёмке указанного ПВЗ. Доступно только для сотрудников ПВЗ. Требуется наличие незакрытой приёмки и хотя бы одного товара в ней.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "products"
+                ],
+                "summary": "Удаление последнего добавленного товара",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор ПВЗ (uuid)",
+                        "name": "pvzId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение об успешном удалении",
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный идентификатор ПВЗ, отсутствие открытой приёмки или отсутствие товаров в приёмке",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/receptions": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Создаёт новую приёмку товаров в указанном ПВЗ. Доступно только для сотрудников ПВЗ. Нельзя создать, если есть открытая приёмка.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "receptions"
+                ],
+                "summary": "Создание приёмки товаров",
+                "parameters": [
+                    {
+                        "description": "Данные для создания приёмки",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createReceptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/v1.createReceptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный идентификатор ПВЗ или открытая приёмка существует",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
@@ -139,25 +447,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Возвращает данные зарегистрированного пользователя",
                         "schema": {
                             "$ref": "#/definitions/v1.registerResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Некорректное тело запроса",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
                     },
                     "409": {
-                        "description": "Conflict",
+                        "description": "Пользователь с таким email уже существует",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/httpresponse.ErrorResponse"
                         }
@@ -171,6 +479,122 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.closeReceptionResponse": {
+            "description": "Ответ с сообщением о закрытие приемки",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "Сообщение о статусе закрытия приёмки",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createPVZRequest": {
+            "description": "Запрос для создания ПВЗ",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "description": "Город\nenum: Москва, Санкт-Петербург, Казань",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createPVZResponse": {
+            "description": "Ответ с данными о созданном ПВЗ",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "description": "Город\nenum: Москва, Санкт-Петербург, Казань",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор ПВЗ\nformat: uuid",
+                    "type": "string"
+                },
+                "registration_date": {
+                    "description": "Дата регистрации ПВЗ\nformat: date-time",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createProductRequest": {
+            "description": "Запрос для добавления товара",
+            "type": "object",
+            "properties": {
+                "pvzId": {
+                    "description": "Идентификатор ПВЗ\nformat: uuid",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Тип товара\nenum: электроника, одежда, обувь",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createProductResponse": {
+            "description": "Ответ с данными о добавленном товаре",
+            "type": "object",
+            "properties": {
+                "dateTime": {
+                    "description": "Дата и время добавления товара\nformat: date-time",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор товара\nformat: uuid",
+                    "type": "string"
+                },
+                "receptionId": {
+                    "description": "Идентификатор приёмки\nformat: uuid",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Тип товара",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createReceptionRequest": {
+            "description": "Запрос для создания приёмки",
+            "type": "object",
+            "properties": {
+                "pvz_id": {
+                    "description": "Идентификатор ПВЗ\nformat: uuid",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.createReceptionResponse": {
+            "description": "Ответ с данными о созданной приёмке",
+            "type": "object",
+            "properties": {
+                "dateTime": {
+                    "description": "Дата и время создания приёмки\nformat: date-time",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор приёмки\nformat: uuid",
+                    "type": "string"
+                },
+                "pvzId": {
+                    "description": "Идентификатор ПВЗ\nformat: uuid",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Статус приёмки\nenum: open, close",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.deleteProductResponse": {
+            "description": "Ответ с сообщением об удалении товара",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "Сообщение об успешном удалении товара",
                     "type": "string"
                 }
             }

@@ -151,7 +151,7 @@ func (s *AuthService) ValidateToken(tokenString string) (*entity.UserClaims, err
 		}
 
 		log.Error("failed to parse token", "error", err)
-		return nil, ErrInternal
+		return nil, ErrInvalidToken
 	}
 	if claims, ok := token.Claims.(*entity.UserClaims); ok && token.Valid {
 		log.Info("token validated successfully", "userID", claims.UserID.String())
