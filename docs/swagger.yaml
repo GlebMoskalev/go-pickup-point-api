@@ -1,0 +1,189 @@
+definitions:
+  httpresponse.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  v1.dummyLoginRequest:
+    description: Запрос для получения тестового токена авторизации
+    properties:
+      role:
+        description: |-
+          Роль пользователя (employee или moderator)
+          enum: employee,moderator
+        type: string
+    type: object
+  v1.dummyLoginResponse:
+    description: Ответ с тестовым токеном авторизации
+    properties:
+      token:
+        description: JWT-токен для аутентификации
+        type: string
+    type: object
+  v1.loginRequest:
+    description: Запрос для аутентификации пользователя
+    properties:
+      email:
+        description: |-
+          Электронная почта пользователя
+          format: email
+        type: string
+      password:
+        description: Пароль пользователя
+        type: string
+    type: object
+  v1.loginResponse:
+    description: Ответ с токеном авторизации после успешной аутентификации
+    properties:
+      token:
+        description: JWT-токен для аутентификации
+        type: string
+    type: object
+  v1.registerRequest:
+    description: Запрос для регистрации нового пользователя
+    properties:
+      email:
+        description: |-
+          Электронная почта пользователя
+          format: email
+        type: string
+      password:
+        description: Пароль пользователя
+        type: string
+      role:
+        description: |-
+          Роль пользователя (employee или moderator)
+          enum: employee,moderator
+        type: string
+    type: object
+  v1.registerResponse:
+    description: Ответ с данными зарегистрированного пользователя
+    properties:
+      email:
+        description: |-
+          Электронная почта пользователя
+          format: email
+        type: string
+      id:
+        description: |-
+          Уникальный идентификатор пользователя
+          format: uuid
+        type: string
+      role:
+        description: |-
+          Роль пользователя (employee или moderator)
+          enum: employee,moderator
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Сервис для управления ПВЗ и приемкой товаров
+  title: Pickup Point API
+  version: 1.0.0
+paths:
+  /api/v1/dummyLogin:
+    post:
+      consumes:
+      - application/json
+      description: Получение тестового токена авторизации по роли
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.dummyLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.dummyLoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+      summary: Dummy login
+      tags:
+      - auth
+  /api/v1/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.loginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрация нового пользователя
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/v1.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/v1.registerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+      summary: Register
+      tags:
+      - auth
+schemes:
+- http
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

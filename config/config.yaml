@@ -1,0 +1,11 @@
+env: "local" # local, dev, prod
+
+database:
+  max_conns: 30
+  min_conns: 5
+  max_conn_life_time: 3600s
+  max_conn_idle_time: 1800s
+
+
+token:
+  ttl: 120m

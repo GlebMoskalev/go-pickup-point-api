@@ -1,0 +1,261 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Сервис для управления ПВЗ и приемкой товаров",
+        "title": "Pickup Point API",
+        "contact": {},
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/v1/dummyLogin": {
+            "post": {
+                "description": "Получение тестового токена авторизации по роли",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Dummy login",
+                "parameters": [
+                    {
+                        "description": "Данные для входа",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.dummyLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.dummyLoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/login": {
+            "post": {
+                "description": "Аутентификация пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Учетные данные",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.loginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.loginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/register": {
+            "post": {
+                "description": "Регистрация нового пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "Данные для регистрации",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.registerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/v1.registerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "httpresponse.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.dummyLoginRequest": {
+            "description": "Запрос для получения тестового токена авторизации",
+            "type": "object",
+            "properties": {
+                "role": {
+                    "description": "Роль пользователя (employee или moderator)\nenum: employee,moderator",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.dummyLoginResponse": {
+            "description": "Ответ с тестовым токеном авторизации",
+            "type": "object",
+            "properties": {
+                "token": {
+                    "description": "JWT-токен для аутентификации",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.loginRequest": {
+            "description": "Запрос для аутентификации пользователя",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Электронная почта пользователя\nformat: email",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Пароль пользователя",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.loginResponse": {
+            "description": "Ответ с токеном авторизации после успешной аутентификации",
+            "type": "object",
+            "properties": {
+                "token": {
+                    "description": "JWT-токен для аутентификации",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.registerRequest": {
+            "description": "Запрос для регистрации нового пользователя",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Электронная почта пользователя\nformat: email",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Пароль пользователя",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "Роль пользователя (employee или moderator)\nenum: employee,moderator",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.registerResponse": {
+            "description": "Ответ с данными зарегистрированного пользователя",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Электронная почта пользователя\nformat: email",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор пользователя\nformat: uuid",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "Роль пользователя (employee или moderator)\nenum: employee,moderator",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "JWT": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
