@@ -131,6 +131,14 @@ definitions:
         description: JWT-токен для аутентификации
         type: string
     type: object
+  v1.listPVZWithDetailsResponse:
+    description: Ответ с данными о ПВЗ, включая приёмки и товары
+    properties:
+      pvzs:
+        items:
+          $ref: '#/definitions/v1.pvzWithDetails'
+        type: array
+    type: object
   v1.loginRequest:
     description: Запрос для аутентификации пользователя
     properties:
@@ -148,6 +156,83 @@ definitions:
     properties:
       token:
         description: JWT-токен для аутентификации
+        type: string
+    type: object
+  v1.productDetails:
+    description: Детали товара
+    properties:
+      date_time:
+        description: |-
+          Дата и время добавления товара
+          format: date-time
+        type: string
+      id:
+        description: |-
+          Уникальный идентификатор товара
+          format: uuid
+        type: string
+      reception_id:
+        description: |-
+          Идентификатор приёмки, к которой относится товар
+          format: uuid
+        type: string
+      type:
+        description: |-
+          Тип товара
+          enum: электроника, одежда, продукты
+        type: string
+    type: object
+  v1.pvzWithDetails:
+    description: Детали ПВЗ
+    properties:
+      city:
+        description: |-
+          Город
+          enum: Москва, Санкт-Петербург, Казань
+        type: string
+      id:
+        description: |-
+          Уникальный идентификатор ПВЗ
+          format: uuid
+        type: string
+      receptions:
+        description: Список приёмок
+        items:
+          $ref: '#/definitions/v1.receptionDetails'
+        type: array
+      registration_date:
+        description: |-
+          Дата регистрации ПВЗ
+          format: date-time
+        type: string
+    type: object
+  v1.receptionDetails:
+    description: Детали приёмки
+    properties:
+      date_time:
+        description: |-
+          Дата и время приёмки
+          format: date-time
+        type: string
+      id:
+        description: |-
+          Уникальный идентификатор приёмки
+          format: uuid
+        type: string
+      products:
+        description: Список товаров в приёмке
+        items:
+          $ref: '#/definitions/v1.productDetails'
+        type: array
+      pvz_id:
+        description: |-
+          Идентификатор ПВЗ, к которому относится приёмка
+          format: uuid
+        type: string
+      status:
+        description: |-
+          Статус приёмки
+          enum: in_progress, closed
         type: string
     type: object
   v1.registerRequest:
@@ -299,6 +384,57 @@ paths:
       tags:
       - products
   /api/v1/pvz:
+    get:
+      consumes:
+      - application/json
+      description: Доступно для сотрудников и модераторов. Возвращает список ПВЗ с
+        информацией о приёмках и товарах, с поддержкой пагинации и фильтрации по датам
+        приёмок.
+      parameters:
+      - description: 'Начальная дата приёмок (формат: RFC3339)'
+        in: query
+        name: startDate
+        type: string
+      - description: 'Конечная дата приёмок (формат: RFC3339)'
+        in: query
+        name: endDate
+        type: string
+      - description: Номер страницы (начинается с 1)
+        in: query
+        name: page
+        type: integer
+      - description: Количество записей на страницу (1-30)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список ПВЗ с приёмками и товарами
+          schema:
+            $ref: '#/definitions/v1.listPVZWithDetailsResponse'
+        "400":
+          description: Неверные параметры запроса
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "401":
+          description: Пользователь не авторизован
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "403":
+          description: 'Доступ запрещён: требуется роль сотрудника или модератора'
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/httpresponse.ErrorResponse'
+      security:
+      - JWT: []
+      summary: Получение списка ПВЗ с приёмками и товарами
+      tags:
+      - pvz
     post:
       consumes:
       - application/json
@@ -378,7 +514,7 @@ paths:
       - JWT: []
       summary: Закрытие последней приёмки
       tags:
-      - receptions
+      - pvz
   /api/v1/pvz/{pvzId}/delete_last_product:
     post:
       description: Удаляет последний добавленный товар в последней незакрытой приёмке
@@ -418,7 +554,7 @@ paths:
       - JWT: []
       summary: Удаление последнего добавленного товара
       tags:
-      - products
+      - pvz
   /api/v1/receptions:
     post:
       consumes:

@@ -117,7 +117,7 @@ func (h *productHandler) createProduct(w http.ResponseWriter, r *http.Request) {
 
 // @Summary Удаление последнего добавленного товара
 // @Description Удаляет последний добавленный товар в последней незакрытой приёмке указанного ПВЗ. Доступно только для сотрудников ПВЗ. Требуется наличие незакрытой приёмки и хотя бы одного товара в ней.
-// @Tags products
+// @Tags pvz
 // @Produce json
 // @Param pvzId path string true "Идентификатор ПВЗ (uuid)"
 // @Success 200 {object} deleteProductResponse "Сообщение об успешном удалении"

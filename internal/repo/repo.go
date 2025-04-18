@@ -6,6 +6,7 @@ import (
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo/pgxdb"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"time"
 )
 
 type User interface {
@@ -17,7 +18,7 @@ type User interface {
 type PVZ interface {
 	Create(ctx context.Context, city string) (*entity.PVZ, error)
 	Exists(ctx context.Context, pvzID string) bool
-	//List(ctx context.Context, page, limit int) ([]*entity.PVZ, error)
+	ListWithDetails(ctx context.Context, startDate, endDate *time.Time, page, limit int) ([]entity.PVZWithDetails, error)
 }
 
 type Reception interface {

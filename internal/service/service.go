@@ -5,6 +5,7 @@ import (
 	"github.com/GlebMoskalev/go-pickup-point-api/config"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/entity"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo"
+	"time"
 )
 
 type Auth interface {
@@ -16,7 +17,7 @@ type Auth interface {
 
 type PVZ interface {
 	Create(ctx context.Context, city string) (*entity.PVZ, error)
-	//List(ctx context.Context, startDate, endDate string, page, limit int) ([]entity.PVZ, error)
+	ListWithDetails(ctx context.Context, startDate, endDate *time.Time, page, limit int) ([]entity.PVZWithDetails, error)
 }
 
 type Reception interface {

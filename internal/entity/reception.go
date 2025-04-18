@@ -16,3 +16,8 @@ type Reception struct {
 	PVZID    uuid.UUID `db:"pvz_id"`
 	Status   string    `db:"status"`
 }
+
+type ReceptionDetails struct {
+	Reception Reception `json:"reception"`
+	Products  []Product `json:"products"`
+}

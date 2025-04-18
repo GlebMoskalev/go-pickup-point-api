@@ -177,6 +177,82 @@ const docTemplate = `{
             }
         },
         "/api/v1/pvz": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Доступно для сотрудников и модераторов. Возвращает список ПВЗ с информацией о приёмках и товарах, с поддержкой пагинации и фильтрации по датам приёмок.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pvz"
+                ],
+                "summary": "Получение списка ПВЗ с приёмками и товарами",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Начальная дата приёмок (формат: RFC3339)",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Конечная дата приёмок (формат: RFC3339)",
+                        "name": "endDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы (начинается с 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество записей на страницу (1-30)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список ПВЗ с приёмками и товарами",
+                        "schema": {
+                            "$ref": "#/definitions/v1.listPVZWithDetailsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён: требуется роль сотрудника или модератора",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/httpresponse.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -254,7 +330,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "receptions"
+                    "pvz"
                 ],
                 "summary": "Закрытие последней приёмки",
                 "parameters": [
@@ -312,7 +388,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "products"
+                    "pvz"
                 ],
                 "summary": "Удаление последнего добавленного товара",
                 "parameters": [
@@ -619,6 +695,18 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.listPVZWithDetailsResponse": {
+            "description": "Ответ с данными о ПВЗ, включая приёмки и товары",
+            "type": "object",
+            "properties": {
+                "pvzs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.pvzWithDetails"
+                    }
+                }
+            }
+        },
         "v1.loginRequest": {
             "description": "Запрос для аутентификации пользователя",
             "type": "object",
@@ -639,6 +727,82 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "description": "JWT-токен для аутентификации",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.productDetails": {
+            "description": "Детали товара",
+            "type": "object",
+            "properties": {
+                "date_time": {
+                    "description": "Дата и время добавления товара\nformat: date-time",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор товара\nformat: uuid",
+                    "type": "string"
+                },
+                "reception_id": {
+                    "description": "Идентификатор приёмки, к которой относится товар\nformat: uuid",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Тип товара\nenum: электроника, одежда, продукты",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.pvzWithDetails": {
+            "description": "Детали ПВЗ",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "description": "Город\nenum: Москва, Санкт-Петербург, Казань",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор ПВЗ\nformat: uuid",
+                    "type": "string"
+                },
+                "receptions": {
+                    "description": "Список приёмок",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.receptionDetails"
+                    }
+                },
+                "registration_date": {
+                    "description": "Дата регистрации ПВЗ\nformat: date-time",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.receptionDetails": {
+            "description": "Детали приёмки",
+            "type": "object",
+            "properties": {
+                "date_time": {
+                    "description": "Дата и время приёмки\nformat: date-time",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор приёмки\nformat: uuid",
+                    "type": "string"
+                },
+                "products": {
+                    "description": "Список товаров в приёмке",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.productDetails"
+                    }
+                },
+                "pvz_id": {
+                    "description": "Идентификатор ПВЗ, к которому относится приёмка\nformat: uuid",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Статус приёмки\nenum: in_progress, closed",
                     "type": "string"
                 }
             }

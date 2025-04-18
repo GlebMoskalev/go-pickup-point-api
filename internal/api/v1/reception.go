@@ -112,7 +112,7 @@ func (h *receptionHandler) createReception(w http.ResponseWriter, r *http.Reques
 
 // @Summary Закрытие последней приёмки
 // @Description Закрывает последнюю открытое приёмку в ПВЗ. Доступно только для сотрудников ПВЗ. Приёмка должна быть открытой.
-// @Tags receptions
+// @Tags pvz
 // @Accept json
 // @Produce json
 // @Param pvzId path string true "Идентификатор ПВЗ"
