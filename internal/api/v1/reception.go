@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"net/http"
+	"time"
 )
 
 // @Description Запрос для создания приёмки
@@ -43,7 +44,9 @@ type closeReceptionResponse struct {
 
 func SetupReceptionRoutes(r chi.Router, receptionService service.Reception) {
 	handler := newReceptionHandler(receptionService)
-	r.Post("/receptions", handler.createReception)
+
+	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
+		Post("/receptions", handler.createReception)
 }
 
 type receptionHandler struct {
@@ -68,16 +71,6 @@ func newReceptionHandler(receptionService service.Reception) *receptionHandler {
 // @Security JWT
 // @Router /api/v1/receptions [post]
 func (h *receptionHandler) createReception(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.ClaimsContext).(*entity.UserClaims)
-	if !ok {
-		httpresponse.Error(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	if claims.Role != entity.RoleEmployee {
-		httpresponse.Error(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	var req createReceptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httpresponse.Error(w, http.StatusBadRequest, "invalid request body")
@@ -103,7 +96,7 @@ func (h *receptionHandler) createReception(w http.ResponseWriter, r *http.Reques
 
 	resp := createReceptionResponse{
 		ID:       reception.ID.String(),
-		DateTime: reception.DateTime.Format("2006-01-02 15:04"),
+		DateTime: reception.DateTime.Format(time.RFC3339),
 		PVZID:    reception.PVZID.String(),
 		Status:   reception.Status,
 	}
@@ -124,16 +117,6 @@ func (h *receptionHandler) createReception(w http.ResponseWriter, r *http.Reques
 // @Security JWT
 // @Router /api/v1/pvz/{pvzId}/close_last_reception [post]
 func (h *receptionHandler) closeLastReception(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.ClaimsContext).(*entity.UserClaims)
-	if !ok {
-		httpresponse.Error(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	if claims.Role != entity.RoleEmployee {
-		httpresponse.Error(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	pvzID := chi.URLParam(r, "pvzId")
 	if _, err := uuid.Parse(pvzID); err != nil {
 		httpresponse.Error(w, http.StatusBadRequest, "invalid pvz id")

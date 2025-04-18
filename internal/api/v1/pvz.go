@@ -25,7 +25,7 @@ type createPVZRequest struct {
 type createPVZResponse struct {
 	// Уникальный идентификатор ПВЗ
 	// format: uuid
-	ID uuid.UUID `json:"id"`
+	ID string `json:"id"`
 	// Дата регистрации ПВЗ
 	// format: date-time
 	RegistrationDate string `json:"registration_date"`
@@ -92,10 +92,18 @@ func SetupPVZRoutes(r chi.Router, pvzService service.PVZ, productService service
 	pvzHandler := newPVZHandler(pvzService)
 	productHandler := newProductHandler(productService)
 	receptionHandler := newReceptionHandler(receptionService)
-	r.Post("/pvz", pvzHandler.createPVZ)
-	r.Post("/pvz/{pvzId}/delete_last_product", productHandler.deleteProduct)
-	r.Post("/pvz/{pvzId}/close_last_reception", receptionHandler.closeLastReception)
-	r.Get("/pvz", pvzHandler.listPVZWithDetails)
+
+	r.With(middleware.RoleMiddleware(entity.RoleModerator)).
+		Post("/pvz", pvzHandler.createPVZ)
+
+	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
+		Post("/pvz/{pvzId}/delete_last_product", productHandler.deleteProduct)
+
+	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
+		Post("/pvz/{pvzId}/close_last_reception", receptionHandler.closeLastReception)
+
+	r.With(middleware.RoleMiddleware(entity.RoleEmployee, entity.RoleModerator)).
+		Get("/pvz", pvzHandler.listPVZWithDetails)
 }
 
 type pvzHandler struct {
@@ -120,16 +128,6 @@ func newPVZHandler(pvzService service.PVZ) *pvzHandler {
 // @Security JWT
 // @Router /api/v1/pvz [post]
 func (h *pvzHandler) createPVZ(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.ClaimsContext).(*entity.UserClaims)
-	if !ok {
-		httpresponse.Error(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	if claims.Role != entity.RoleModerator {
-		httpresponse.Error(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	var req createPVZRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -149,8 +147,8 @@ func (h *pvzHandler) createPVZ(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := createPVZResponse{
-		ID:               pvz.ID,
-		RegistrationDate: pvz.RegistrationDate.Format("2006-01-02 15:04"),
+		ID:               pvz.ID.String(),
+		RegistrationDate: pvz.RegistrationDate.Format(time.RFC3339),
 		City:             pvz.City,
 	}
 	httpresponse.JSON(w, http.StatusCreated, resp)
@@ -173,16 +171,6 @@ func (h *pvzHandler) createPVZ(w http.ResponseWriter, r *http.Request) {
 // @Security JWT
 // @Router /api/v1/pvz [get]
 func (h *pvzHandler) listPVZWithDetails(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.ClaimsContext).(*entity.UserClaims)
-	if !ok {
-		httpresponse.Error(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	if claims.Role != entity.RoleModerator && claims.Role != entity.RoleEmployee {
-		httpresponse.Error(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	var (
 		startDate *time.Time
 		endDate   *time.Time

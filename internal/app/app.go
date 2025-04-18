@@ -38,7 +38,7 @@ func Run(configPath string) {
 	}
 
 	if err := server.ListenAndServe(); err != nil {
-		slog.Error("server error: %v", err)
+		slog.Error("server error: %v", "error", err)
 		return
 	}
 }

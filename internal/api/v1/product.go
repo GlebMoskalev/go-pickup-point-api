@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"net/http"
+	"time"
 )
 
 // @Description Запрос для добавления товара
@@ -45,7 +46,9 @@ type deleteProductResponse struct {
 
 func SetupProductRoutes(r chi.Router, productService service.Product) {
 	handler := newProductHandler(productService)
-	r.Post("/products", handler.createProduct)
+
+	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
+		Post("/products", handler.createProduct)
 }
 
 type productHandler struct {
@@ -70,16 +73,6 @@ func newProductHandler(productService service.Product) *productHandler {
 // @Security JWT
 // @Router /api/v1/products [post]
 func (h *productHandler) createProduct(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.ClaimsContext).(*entity.UserClaims)
-	if !ok {
-		httpresponse.Error(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	if claims.Role != entity.RoleEmployee {
-		httpresponse.Error(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	var req createProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httpresponse.Error(w, http.StatusBadRequest, "invalid request body")
@@ -108,7 +101,7 @@ func (h *productHandler) createProduct(w http.ResponseWriter, r *http.Request) {
 
 	resp := createProductResponse{
 		ID:          product.ID.String(),
-		DateTime:    product.DateTime.Format("2006-01-02 15:04"),
+		DateTime:    product.DateTime.Format(time.RFC3339),
 		Type:        product.Type,
 		ReceptionID: product.ReceptionID.String(),
 	}
@@ -128,16 +121,6 @@ func (h *productHandler) createProduct(w http.ResponseWriter, r *http.Request) {
 // @Security JWT
 // @Router /api/v1/pvz/{pvzId}/delete_last_product [post]
 func (h *productHandler) deleteProduct(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.ClaimsContext).(*entity.UserClaims)
-	if !ok {
-		httpresponse.Error(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	if claims.Role != entity.RoleEmployee {
-		httpresponse.Error(w, http.StatusForbidden, "access denied")
-		return
-	}
-
 	pvzID := chi.URLParam(r, "pvzId")
 	if _, err := uuid.Parse(pvzID); err != nil {
 		httpresponse.Error(w, http.StatusBadRequest, "invalid pvz id")

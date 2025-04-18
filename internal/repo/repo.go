@@ -9,18 +9,21 @@ import (
 	"time"
 )
 
+//go:generate go run github.com/vektra/mockery/v2@v2.53.3 --name=User --output=./mocks
 type User interface {
 	Create(ctx context.Context, user entity.User) (*entity.User, error)
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 	GetById(ctx context.Context, id uuid.UUID) (*entity.User, error)
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.53.3 --name=PVZ --output=./mocks
 type PVZ interface {
 	Create(ctx context.Context, city string) (*entity.PVZ, error)
 	Exists(ctx context.Context, pvzID string) bool
 	ListWithDetails(ctx context.Context, startDate, endDate *time.Time, page, limit int) ([]entity.PVZWithDetails, error)
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.53.3 --name=Reception --output=./mocks
 type Reception interface {
 	Create(ctx context.Context, pvzID string) (*entity.Reception, error)
 	HasOpenReception(ctx context.Context, pvzID string) (bool, error)
@@ -28,6 +31,7 @@ type Reception interface {
 	Close(ctx context.Context, receptionID string) error
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.53.3 --name=Product --output=./mocks
 type Product interface {
 	Create(ctx context.Context, receptionID, productType string) (*entity.Product, error)
 	DeleteLastProduct(ctx context.Context, receptionID string) error
