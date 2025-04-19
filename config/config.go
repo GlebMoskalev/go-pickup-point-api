@@ -9,11 +9,12 @@ import (
 
 type (
 	Config struct {
-		Env      string   `env-required:"true", yaml:"env"`
-		Server   Server   `yaml:"server"`
-		Database Database `yaml:"database"`
-		Token    Token    `yaml:"token"`
-		Salt     string   `env-required:"true" env:"SALT"`
+		Env        string     `env-required:"true", yaml:"env"`
+		Server     Server     `yaml:"server"`
+		Database   Database   `yaml:"database"`
+		Token      Token      `yaml:"token"`
+		Salt       string     `env-required:"true" env:"SALT"`
+		Prometheus Prometheus `yaml:"prometheus"`
 	}
 	Server struct {
 		Host            string        `env-required:"true" env:"HOST"`
@@ -35,6 +36,11 @@ type (
 	Token struct {
 		SignKey string        `env-required:"true" env:"JWT_SIGN_KEY"`
 		TTL     time.Duration `env-required:"true" yaml:"ttl"`
+	}
+
+	Prometheus struct {
+		Port string `env-required:"true" yaml:"port"`
+		Path string `env-required:"true" yaml:"path"`
 	}
 )
 

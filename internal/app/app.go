@@ -8,6 +8,7 @@ import (
 	v1 "github.com/GlebMoskalev/go-pickup-point-api/internal/api/v1"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
 	"net/http"
 	"os"
@@ -41,10 +42,23 @@ func Run(configPath string) {
 		Handler: router,
 	}
 
-	serverErrors := make(chan error, 1)
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	metricsAddr := fmt.Sprintf(":%s", cfg.Prometheus.Port)
+	metricsServer := &http.Server{
+		Addr:    metricsAddr,
+		Handler: mux,
+	}
+
+	serverErrors := make(chan error, 2)
 	go func() {
 		slog.Info("starting server", "address", serverAddr)
 		serverErrors <- server.ListenAndServe()
+	}()
+
+	go func() {
+		slog.Info("starting prometheus metrics server", "address", metricsAddr)
+		serverErrors <- metricsServer.ListenAndServe()
 	}()
 
 	shutdown := make(chan os.Signal, 1)
@@ -70,7 +84,14 @@ func Run(configPath string) {
 				slog.Error("server closed error", "error", err)
 			}
 		}
+
+		if err := metricsServer.Shutdown(ctx); err != nil {
+			slog.Error("metrics server shutdown error", "error", err)
+			if err := metricsServer.Close(); err != nil {
+				slog.Error("metrics server close error", "error", err)
+			}
+		}
 	}
 
-	slog.Info("server stopped")
+	slog.Info("servers stopped")
 }

@@ -12,3 +12,8 @@ database:
 
 token:
   ttl: 120m
+
+
+prometheus:
+  port: "9000"
+  path: "/metrics"

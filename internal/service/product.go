@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/entity"
+	"github.com/GlebMoskalev/go-pickup-point-api/internal/metrics"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo/repoerr"
 	"log/slog"
@@ -54,6 +55,7 @@ func (s *ProductService) Create(ctx context.Context, pvzID, productType string) 
 		return nil, ErrInternal
 	}
 
+	metrics.ProductsAdded.Inc()
 	log.Info("product created successfully", "productID", product.ID.String(), "receptionID", reception.ID.String())
 	return product, nil
 }

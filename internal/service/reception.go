@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/entity"
+	"github.com/GlebMoskalev/go-pickup-point-api/internal/metrics"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo/repoerr"
 	"log/slog"
@@ -43,6 +44,8 @@ func (s *ReceptionService) Create(ctx context.Context, pvzID string) (*entity.Re
 		log.Error("failed to create reception", "error", err)
 		return nil, ErrInternal
 	}
+
+	metrics.ReceptionsCreated.Inc()
 	log.Info("reception created successfully", "receptionID", reception.ID.String())
 	return reception, nil
 }

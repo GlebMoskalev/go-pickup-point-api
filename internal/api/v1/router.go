@@ -10,6 +10,7 @@ import (
 
 func NewRouter(services *service.Services) *chi.Mux {
 	r := chi.NewRouter()
+	r.Use(middleware.PrometheusMiddleware)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		SetupAuthRoutes(r, services.Auth)

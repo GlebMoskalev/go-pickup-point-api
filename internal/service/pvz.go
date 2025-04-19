@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/entity"
+	"github.com/GlebMoskalev/go-pickup-point-api/internal/metrics"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo"
 	"log/slog"
 	"time"
@@ -30,6 +31,7 @@ func (s *PVZService) Create(ctx context.Context, city string) (*entity.PVZ, erro
 		return nil, ErrInternal
 	}
 
+	metrics.PVZCreated.Inc()
 	log.Info("pvz created successfully", "pvzID", pvz.ID.String())
 	return pvz, nil
 }
