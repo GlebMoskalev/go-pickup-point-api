@@ -1,5 +1,8 @@
 env: "local" # local, dev, prod
 
+server:
+  shutdown_timeout: 5s
+
 database:
   max_conns: 30
   min_conns: 5

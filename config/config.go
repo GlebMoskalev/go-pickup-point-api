@@ -9,15 +9,16 @@ import (
 
 type (
 	Config struct {
-		Env      string `env-required:"true", yaml:"env"`
-		Server   Server
+		Env      string   `env-required:"true", yaml:"env"`
+		Server   Server   `yaml:"server"`
 		Database Database `yaml:"database"`
 		Token    Token    `yaml:"token"`
 		Salt     string   `env-required:"true" env:"SALT"`
 	}
 	Server struct {
-		Host string `env-required:"true" env:"HOST"`
-		Port string `env-required:"true" env:"PORT"`
+		Host            string        `env-required:"true" env:"HOST"`
+		Port            string        `env-required:"true" env:"PORT"`
+		ShutdownTimeout time.Duration `env-required:"true" yaml:"shutdown_timeout"`
 	}
 	Database struct {
 		User            string        `env-required:"true" env:"DB_USER"`

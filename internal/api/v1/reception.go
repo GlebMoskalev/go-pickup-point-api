@@ -46,7 +46,7 @@ func SetupReceptionRoutes(r chi.Router, receptionService service.Reception) {
 	handler := newReceptionHandler(receptionService)
 
 	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
-		Post("/receptions", handler.createReception)
+		Post("/", handler.createReception)
 }
 
 type receptionHandler struct {

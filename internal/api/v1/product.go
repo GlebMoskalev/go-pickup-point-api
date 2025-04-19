@@ -48,7 +48,7 @@ func SetupProductRoutes(r chi.Router, productService service.Product) {
 	handler := newProductHandler(productService)
 
 	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
-		Post("/products", handler.createProduct)
+		Post("/", handler.createProduct)
 }
 
 type productHandler struct {

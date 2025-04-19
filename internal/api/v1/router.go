@@ -16,10 +16,18 @@ func NewRouter(services *service.Services) *chi.Mux {
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AuthMiddleware(services.Auth))
-			SetupPVZRoutes(r, services.PVZ, services.Product, services.Reception)
 
-			SetupReceptionRoutes(r, services.Reception)
-			SetupProductRoutes(r, services.Product)
+			r.Route("/pvz", func(r chi.Router) {
+				SetupPVZRoutes(r, services.PVZ, services.Product, services.Reception)
+			})
+
+			r.Route("/receptions", func(r chi.Router) {
+				SetupReceptionRoutes(r, services.Reception)
+			})
+
+			r.Route("/products", func(r chi.Router) {
+				SetupProductRoutes(r, services.Product)
+			})
 		})
 	})
 

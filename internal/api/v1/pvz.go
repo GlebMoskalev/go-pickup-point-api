@@ -94,16 +94,16 @@ func SetupPVZRoutes(r chi.Router, pvzService service.PVZ, productService service
 	receptionHandler := newReceptionHandler(receptionService)
 
 	r.With(middleware.RoleMiddleware(entity.RoleModerator)).
-		Post("/pvz", pvzHandler.createPVZ)
+		Post("/", pvzHandler.createPVZ)
 
 	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
-		Post("/pvz/{pvzId}/delete_last_product", productHandler.deleteProduct)
+		Post("/{pvzId}/delete_last_product", productHandler.deleteProduct)
 
 	r.With(middleware.RoleMiddleware(entity.RoleEmployee)).
-		Post("/pvz/{pvzId}/close_last_reception", receptionHandler.closeLastReception)
+		Post("/{pvzId}/close_last_reception", receptionHandler.closeLastReception)
 
 	r.With(middleware.RoleMiddleware(entity.RoleEmployee, entity.RoleModerator)).
-		Get("/pvz", pvzHandler.listPVZWithDetails)
+		Get("/", pvzHandler.listPVZWithDetails)
 }
 
 type pvzHandler struct {
