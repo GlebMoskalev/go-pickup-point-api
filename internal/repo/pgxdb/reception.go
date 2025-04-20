@@ -24,6 +24,20 @@ func (r *ReceptionRepo) Create(ctx context.Context, pvzID string) (*entity.Recep
 	log := slog.With("layer", "ReceptionRepo", "operation", "Create", "pvzID", pvzID)
 	log.Debug("starting reception creation")
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		log.Error("failed to begin transaction", "error", err)
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				log.Error("failed to rollback transaction", "error", rollbackErr)
+			}
+		}
+	}()
+
 	query := `
 	INSERT INTO receptions (pvz_id, status)
 	VALUES ($1, 'in_progress')
@@ -31,9 +45,14 @@ func (r *ReceptionRepo) Create(ctx context.Context, pvzID string) (*entity.Recep
 `
 	var id, pvzUUID uuid.UUID
 	var dateTime time.Time
-	err := r.db.QueryRow(ctx, query, pvzID).Scan(&id, &dateTime, &pvzUUID)
+	err = tx.QueryRow(ctx, query, pvzID).Scan(&id, &dateTime, &pvzUUID)
 	if err != nil {
 		log.Error("failed to create reception", "error", err)
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Error("failed to commit transaction", "error", err)
 		return nil, err
 	}
 
@@ -100,6 +119,20 @@ func (r *ReceptionRepo) Close(ctx context.Context, receptionID string) error {
 	log := slog.With("layer", "ReceptionRepo", "operation", "Close", "receptionID", receptionID)
 	log.Debug("starting reception closure")
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		log.Error("failed to begin transaction", "error", err)
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				log.Error("failed to rollback transaction", "error", rollbackErr)
+			}
+		}
+	}()
+
 	query := `
 	UPDATE receptions
 	SET status = 'close'
@@ -107,13 +140,18 @@ func (r *ReceptionRepo) Close(ctx context.Context, receptionID string) error {
 	RETURNING id
 `
 	var id uuid.UUID
-	err := r.db.QueryRow(ctx, query, receptionID).Scan(&id)
+	err = tx.QueryRow(ctx, query, receptionID).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Error("not found in_progress reception")
 			return repoerr.ErrNoRows
 		}
 		log.Error("failed to close reception", "error", err)
+		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Error("failed to commit transaction", "error", err)
 		return err
 	}
 

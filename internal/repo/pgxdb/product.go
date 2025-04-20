@@ -24,6 +24,19 @@ func (r *ProductRepo) Create(ctx context.Context, receptionID, productType strin
 	log := slog.With("layer", "ProductRepo", "operation", "Create", "receptionID", receptionID, "type", productType)
 	log.Debug("starting product creation")
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		log.Error("failed to begin transaction", "error", err)
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				log.Error("failed to rollback transaction", "error", rollbackErr)
+			}
+		}
+	}()
+
 	query := `
 	INSERT INTO products (type, reception_id) 
 	VALUES ($1, $2)
@@ -32,9 +45,14 @@ func (r *ProductRepo) Create(ctx context.Context, receptionID, productType strin
 	var id, receptionUUID uuid.UUID
 	var dateTime time.Time
 
-	err := r.db.QueryRow(ctx, query, productType, receptionID).Scan(&id, &dateTime, &receptionUUID)
+	err = tx.QueryRow(ctx, query, productType, receptionID).Scan(&id, &dateTime, &receptionUUID)
 	if err != nil {
 		log.Error("failed to create product", "error", err)
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Error("failed to commit transaction", "error", err)
 		return nil, err
 	}
 
@@ -53,6 +71,20 @@ func (r *ProductRepo) DeleteLastProduct(ctx context.Context, receptionID string)
 	log := slog.With("layer", "ProductRepo", "operation", "DeleteLastProduct", "receptionID", receptionID)
 	log.Debug("starting product deletion")
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		log.Error("failed to begin transaction", "error", err)
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				log.Error("failed to rollback transaction", "error", rollbackErr)
+			}
+		}
+	}()
+
 	query := `
 	DELETE FROM products
 	WHERE id = (
@@ -66,13 +98,18 @@ func (r *ProductRepo) DeleteLastProduct(ctx context.Context, receptionID string)
 `
 
 	var id uuid.UUID
-	err := r.db.QueryRow(ctx, query, receptionID).Scan(&id)
+	err = tx.QueryRow(ctx, query, receptionID).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Error("not found product")
 			return repoerr.ErrNoRows
 		}
 		log.Error("failed to delete product", "error", err)
+		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Error("failed to commit transaction", "error", err)
 		return err
 	}
 

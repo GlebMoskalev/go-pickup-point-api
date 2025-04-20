@@ -25,6 +25,19 @@ func (r *UserRepo) Create(ctx context.Context, user entity.User) (*entity.User, 
 	log := slog.With("layer", "UserRepo", "operation", "Create", "email", privacy.MaskEmail(user.Email))
 	log.Debug("starting user creation")
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		log.Error("failed to begin transaction", "error", err)
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				log.Error("failed to rollback transaction", "error", rollbackErr)
+			}
+		}
+	}()
+
 	query := `
 	INSERT INTO users 
 	    (email, password_hash, role) 
@@ -32,7 +45,7 @@ func (r *UserRepo) Create(ctx context.Context, user entity.User) (*entity.User, 
 	RETURNING id
 `
 	var id uuid.UUID
-	err := r.db.QueryRow(ctx, query, user.Email, user.PasswordHash, user.Role).Scan(&id)
+	err = tx.QueryRow(ctx, query, user.Email, user.PasswordHash, user.Role).Scan(&id)
 	if err != nil {
 		var pgxError *pgconn.PgError
 		if errors.As(err, &pgxError) {
@@ -44,6 +57,12 @@ func (r *UserRepo) Create(ctx context.Context, user entity.User) (*entity.User, 
 		log.Error("failed to create user", "error", err)
 		return nil, err
 	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Error("failed to commit transaction", "error", err)
+		return nil, err
+	}
+
 	user.ID = id
 
 	log.Info("user created successfully", "userID", id.String())

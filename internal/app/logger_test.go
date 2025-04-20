@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestSetLogger_ProdLevel(t *testing.T) {
+func TestSetLogger(t *testing.T) {
 	var buf bytes.Buffer
 	originalStdout := os.Stdout
 	r, w, _ := os.Pipe()

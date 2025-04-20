@@ -25,6 +25,20 @@ func (r *PVZRepo) Create(ctx context.Context, city string) (*entity.PVZ, error) 
 	log := slog.With("layer", "PVZRepo", "operation", "Create", "city", city)
 	log.Debug("starting pvz creation")
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		log.Error("failed to begin transaction", "error", err)
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				log.Error("failed to rollback transaction", "error", rollbackErr)
+			}
+		}
+	}()
+
 	query := `
 	INSERT INTO pvz (city)
 	VALUES ($1)
@@ -32,9 +46,14 @@ func (r *PVZRepo) Create(ctx context.Context, city string) (*entity.PVZ, error) 
 `
 	var id uuid.UUID
 	var date time.Time
-	err := r.db.QueryRow(ctx, query, city).Scan(&id, &date)
+	err = tx.QueryRow(ctx, query, city).Scan(&id, &date)
 	if err != nil {
 		log.Error("failed to create pvz", "error", err)
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Error("failed to commit transaction", "error", err)
 		return nil, err
 	}
 
