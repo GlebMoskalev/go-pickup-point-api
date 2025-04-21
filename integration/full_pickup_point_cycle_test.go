@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/GlebMoskalev/go-pickup-point-api/integration/helpers"
+	"github.com/GlebMoskalev/go-pickup-point-api/integration/helperstest"
 	v1 "github.com/GlebMoskalev/go-pickup-point-api/internal/api/v1"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/repo"
 	"github.com/GlebMoskalev/go-pickup-point-api/internal/service"
@@ -18,16 +18,16 @@ import (
 
 func TestFullPickupPointCycle(t *testing.T) {
 	ctx := context.Background()
-	postgresContainer, dbConfig := helpers.SetupPostgresContainer(t, ctx)
+	postgresContainer, dbConfig := helperstest.SetupPostgresContainer(t, ctx)
 	defer postgresContainer.Terminate(ctx)
 
-	dbPool := helpers.SetupDatabaseConnection(t, ctx, dbConfig)
+	dbPool := helperstest.SetupDatabaseConnection(t, ctx, dbConfig)
 	defer dbPool.Close()
 
-	helpers.ApplyMigrations(t, dbConfig)
+	helperstest.ApplyMigrations(t, dbConfig)
 
 	repositories := repo.NewRepositories(dbPool)
-	services := service.NewServices(repositories, helpers.CreateTestConfig(dbConfig))
+	services := service.NewServices(repositories, helperstest.CreateTestConfig(dbConfig))
 
 	router := v1.NewRouter(services)
 

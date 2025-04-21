@@ -14,6 +14,9 @@ func TestSetLogger(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	setLogger("local")
+	setLogger("")
+	setLogger("dev")
 	setLogger("prod")
 
 	slog.Debug("this is debug")

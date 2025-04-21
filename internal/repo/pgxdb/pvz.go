@@ -102,7 +102,7 @@ func (r *PVZRepo) ListWithDetails(ctx context.Context,
 	    r.id AS reception_id, r.date_time AS reception_date_time, r.pvz_id, r.status,
 	    pr.id AS product_id, pr.date_time AS product_date_time, pr.type AS product_type
 	FROM pvz p
-	LEFT JOIN receptions r ON p.id = r.pvz_id
+	INNER JOIN receptions r ON p.id = r.pvz_id
 	LEFT JOIN products pr ON r.id = pr.reception_id
 `
 
@@ -124,7 +124,7 @@ func (r *PVZRepo) ListWithDetails(ctx context.Context,
 
 	idx := len(args) + 1
 	query += fmt.Sprintf(`
-	ORDER BY p.id, r.date_time DESC, pr.order_number DESC
+	ORDER BY p.registration_date, r.date_time DESC
 	LIMIT $%d OFFSET  $%d
 `, idx, idx+1)
 

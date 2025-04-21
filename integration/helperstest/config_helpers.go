@@ -1,4 +1,4 @@
-package helpers
+package helperstest
 
 import (
 	"github.com/GlebMoskalev/go-pickup-point-api/config"
